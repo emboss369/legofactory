@@ -47,13 +47,14 @@ IN_4 = DigitalOutputDevice(IN4)
 ang = 360
 
 # 角度をパルス数に換算
-p_cnt = int(ang / (5.625 / 64))
+#p_cnt = int(ang / (5.625 / 64))
+p_cnt = int(ang / (5.625 / 32))
 
 # 回転方向（-1: 時計回り, 1: 反時計回り）
 dir = 1
 
 # パルス幅（小さいほど速い、0.001以下は回転しない可能性あり）
-p_wid = 0.001
+p_wid = 0.002
 
 
 # ステッピングモーターを制御する関数
@@ -93,14 +94,17 @@ def test_mode(steps=512):
     global dir, p_cnt, p_wid
     for i in range(2):
         for j in range(p_cnt):
-            if j % 2 == 0:
-                set_pins(sig_2)
-                time.sleep(p_wid)
-                sig_2.rotate(dir)
-            else:
-                set_pins(sig_1)
-                time.sleep(p_wid)
-                sig_1.rotate(dir)
+            # if j % 2 == 0:
+            #     set_pins(sig_2)
+            #     time.sleep(p_wid)
+            #     sig_2.rotate(dir)
+            # else:
+            #     set_pins(sig_1)
+            #     time.sleep(p_wid)
+            #     sig_1.rotate(dir)
+            set_pins(sig_1)
+            time.sleep(p_wid)
+            sig_1.rotate(dir)
         
         # 回転方向を逆にする
         dir *= -1
