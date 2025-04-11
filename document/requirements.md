@@ -58,6 +58,13 @@ graph TD
   - **レジスタ 40005**: モータ速度制御値（範囲: 0=停止, 100=最大速度）
   - Python側でこの値を読み取り、速度に応じてステッピングモータのステップ間隔を調整
 
+#### Modbusプロトコルについて
+- **Modbus**: 産業用の通信プロトコルで、主にPLC（プログラマブルロジックコントローラ）間やPLCとセンサー/アクチュエータ間の通信に使用されます。
+- **通信モデル**: マスター/スレーブモデルを採用しており、マスターがリクエストを送信し、スレーブが応答します。
+- **用途**:
+  - **Modbusスレーブ**: OpenPLCを外部のSCADAシステムやHMI（ヒューマンマシンインターフェース）と接続する際に使用されます。
+  - **Modbusマスター**: OpenPLCが他のModbus対応デバイス（センサー、アクチュエータなど）を制御する際に使用されます。
+
 ### 2.6 レジスタ割当て
 
 | レジスタ | 内容                                       |
@@ -67,7 +74,7 @@ graph TD
 | 40003    | モータ温度異常フラグ（0=正常, 1=異常）     |
 | 40004    | 物体検知フラグ（0=未検知, 1=検知）         |
 
-### Raspberry Pi 5 GPIO配線詳細
+### 2.7 Raspberry Pi 5 GPIO配線詳細
 
 | Raspberry Pi 5 ピン  | 用途                                         |
 | -------------------- | -------------------------------------------- |
@@ -88,7 +95,7 @@ graph TD
 | GND                  | 共通GND                                      |
 
 
-### Raspberry Pi 5とMCP3008のピン配置
+### 2.8 Raspberry Pi 5とMCP3008のピン配置
 
 | Raspberry Pi 5 ピン   | MCP3008 ピン           | 用途                        |
 | --------------------- | ---------------------- | --------------------------- |
@@ -109,10 +116,12 @@ graph TD
 - 各コンポーネントの状態（温度、モータ動作状況など）をOpenPLCに送信
 - AD変換モジュール（MCP3008）を使用し、光センサー（CdSセル）を処理
 
-### 2.6 参考資料
+
+### 2.9 参考資料
 - [28BYJ-48 データシート (秋月電子)](https://akizukidenshi.com/goodsaffix/28byj-48.pdf)
 - [28BYJ-48-W01 データシート (秋月電子)](https://akizukidenshi.com/goodsaffix/28BYJ48-W01.pdf)
 - [ステッピングモータの駆動方式解説](https://creators-small-room.hatenablog.com/entry/steppingmotor-uni)
+- [OpenPLC公式サイト](https://www.openplcproject.com/)
 
 ## 3. 非機能要件
 
@@ -151,4 +160,57 @@ graph TD
 ### 5.5 温度異常監視
 1. DS18B20温度センサーが5秒ごとに温度を計測
 2. 50℃を超えた場合、OpenPLCへ異常フラグを送信し、モータを停止
+
+## 6. OpenPLCのDocker化について
+
+### 6.1 背景
+本システムでは、Raspberry Pi 5上にOpenPLC Runtimeを動作させ、Modbus TCPサーバとして機能させる。  
+これにより、Pythonプログラムとの通信およびラダー制御による一元管理を実現する。  
+システムの再現性・メンテナンス性を向上させるため、OpenPLCを**Dockerコンテナ**上で動作させる構成とする。
+
+### 6.2 Docker利用のメリット
+- インストール作業が簡略化される
+- バージョン管理が容易
+- 環境依存を排除でき、再現性が高まる
+- システム更新やリストアが容易
+
+### 6.3 実装概要
+- ベースイメージ：`raspbian:bullseye` または`debian:bullseye`
+- OpenPLC Runtimeをビルドし、コンテナ内で起動
+- 必要な通信ポート（例：Modbus TCP 502番）を公開
+- 必要に応じてホストのGPIOデバイスをコンテナ内にマウント
+- フォルダ構成は modules/openplc配下に各ファイルを配置すること。
+
+### 6.4 Dockerfile例
+```Dockerfile
+FROM balenalib/armv7hf-debian:bullseye
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    libmodbus-dev \
+    wiringpi
+
+# OpenPLC Runtimeクローン
+RUN git clone https://github.com/thiagoralves/OpenPLC_v3.git /opt/OpenPLC_v3
+
+WORKDIR /opt/OpenPLC_v3
+RUN cd OpenPLC_v3 && make all
+
+# ポート502 (Modbus TCP) を公開
+EXPOSE 502
+
+CMD ["./OpenPLC_v3", "runtime"]
+```
+
+### 6.5 起動コマンド例
+```bash
+docker build -t openplc_runtime .
+docker run -d --name openplc --network host --privileged openplc_runtime
+```
+※ `--privileged`オプションを使用し、GPIOアクセスを許可する必要あり
+
+
+
 

@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  openplc:
+    build: .
+    ports:
+      - "8080:8080"
+      - "502:502"
+      - "20000:20000"
+      - "44818:44818"
+      - "44628:44628"
+    privileged: true

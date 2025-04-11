@@ -33,8 +33,12 @@ IN1, IN2, IN3, IN4 = 17, 27, 22, 23
 #     DigitalOutputDevice(IN4)
 # ]
 # 出力信号パターンのリストを作成
-sig_1 = deque([0, 1, 0, 0])  # 1相励磁
-sig_2 = deque([1, 1, 0, 0])  # 2相励磁
+sig_1 = deque([0, 1, 0, 0])  # 1相励磁(正相)
+sig_2 = deque([1, 1, 0, 0])  # 2相励磁(正相)
+sig_3 = deque([1, 0, 0, 0])  # 1相励磁(逆相)
+sig_4 = deque([1, 1, 0, 0])  # 2相励磁(逆相)
+
+# FIXME 上記にはバグがあり、逆回転の時に正しい出力信号パターンになっていない。1の場所がズレている。
 
 # 使用するピン番号
 IN_1 = DigitalOutputDevice(IN1)
@@ -62,6 +66,7 @@ def set_pins(pattern):
     IN_2.value = pattern[1]
     IN_3.value = pattern[2]
     IN_4.value = pattern[3]
+    logging.debug(f'pattern: {pattern}')
 
 
 
@@ -91,7 +96,7 @@ def test_mode(steps=512):
     #     step_motor()
     # 時計回りに1回転、反時計回りに1回転する
     global dir, p_cnt, p_wid
-    for i in range(2):
+    for i in range(10):
         for j in range(p_cnt):
             if j % 2 == 0:
                 set_pins(sig_2)
@@ -101,10 +106,23 @@ def test_mode(steps=512):
                 set_pins(sig_1)
                 time.sleep(p_wid)
                 sig_1.rotate(dir)
+    # 回転方向を逆にする
+    dir *= -1
+    time.sleep(1.0)
+
+    for i in range(10):
+        for j in range(p_cnt):
+            if j % 2 == 0:
+                set_pins(sig_4)
+                time.sleep(p_wid)
+                sig_4.rotate(dir)
+            else:
+                set_pins(sig_3)
+                time.sleep(p_wid)
+                sig_3.rotate(dir)
+            
+
         
-        # 回転方向を逆にする
-        dir *= -1
-        time.sleep(1.0)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Stepper Motor Control')
