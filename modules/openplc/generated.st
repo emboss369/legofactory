@@ -1,7 +1,7 @@
 PROGRAM Test
   VAR
-    my_button AT %IX0.3 : BOOL;
-    lamp AT %QX0.0 : BOOL;
+    my_button AT %IX0.15 : BOOL;
+    lamp AT %QX0.25 : BOOL;
   END_VAR
 
   lamp := my_button;
