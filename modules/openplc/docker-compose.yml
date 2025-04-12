@@ -9,3 +9,5 @@ services:
       - "44818:44818"
       - "44628:44628"
     privileged: true
+    volumes:
+      - /proc:/proc
