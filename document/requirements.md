@@ -30,6 +30,27 @@ graph TD
     A -->|温度監視| H(DS18B20)
 ```
 
+### コンポーネント図
+
+```mermaid
+graph TD
+  subgraph RPI4
+    A[ステッピングモーター] -->|GPIO制御| B[Codesys]
+    C[光センサー] -->|GPIOデータ読み込み| B
+    D[温度監視] -->|GPIOデータ読み込み| B
+    B -->|GPIO制御| A
+  end
+
+  subgraph KubernetesCluster RPI 1 2 3
+    E[カメラ撮影＆AI画像認識]
+  end
+
+  B <-->|ModbusTCP通信| E
+  E -->|判定結果送信| B
+```
+
+
+
 ## 2. 機能要件
 
 ### 2.1 ベルトコンベア制御
