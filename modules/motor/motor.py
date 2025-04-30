@@ -25,20 +25,13 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 # GPIOピン設定
 IN1, IN2, IN3, IN4 = 17, 27, 22, 23
-# # GPIO ピン番号を指定して DigitalOutputDevice を作成
-# coil_pins = [
-#     DigitalOutputDevice(IN1),
-#     DigitalOutputDevice(IN2),
-#     DigitalOutputDevice(IN3),
-#     DigitalOutputDevice(IN4)
-# ]
 # 出力信号パターンのリストを作成
 sig_1 = deque([0, 1, 0, 0])  # 1相励磁(正相)
 sig_2 = deque([1, 1, 0, 0])  # 2相励磁(正相)
 sig_3 = deque([1, 0, 0, 0])  # 1相励磁(逆相)
 sig_4 = deque([1, 1, 0, 0])  # 2相励磁(逆相)
 
-# FIXME 上記にはバグがあり、逆回転の時に正しい出力信号パターンになっていない。1の場所がズレている。
+
 
 # 使用するピン番号
 IN_1 = DigitalOutputDevice(IN1)
